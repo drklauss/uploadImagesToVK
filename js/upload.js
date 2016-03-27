@@ -140,13 +140,11 @@ document.addEventListener("DOMContentLoaded", function() {
     imageName = imageName.slice(0, imageName.indexOf('&'));
   }
 
-  uploadAjax(imageUrl, imageName, params[1]);
+  uploadAjax(params[1]);
 });
 
-function uploadAjax(imageUrl, fileName, TOKEN) {
+function uploadAjax(TOKEN) {
 
-  console.log('in ajax: ' + imageUrl);
-  console.dir(encodeURIComponent(imageUrl));
   var ALBUM_ID = 230013795;
   var GROUP_ID = 118100154;
   $.ajax({
@@ -159,18 +157,18 @@ function uploadAjax(imageUrl, fileName, TOKEN) {
     }
   })
   .success(function(result) {
-    toastr.success('success: ' + result);
+    toastr.success('success1: ' + result);
     console.dir(result);
-    sendBlob(result.response.upload_url, imageUrl);
+    sendBlob(result.response.upload_url);
   })
   .error(function() {
-    toastr.error('error' + result);
+    toastr.error('error1' + result);
     console.dir(result);
   })
   ;
 }
 
-function sendBlob(upload_url, imageUrl) {
+function sendBlob(upload_url) {
   var url = window.location.hash.substring(1).split('&')[0];
   var blob = null;
   var xhr = new XMLHttpRequest();
@@ -179,30 +177,66 @@ function sendBlob(upload_url, imageUrl) {
   xhr.onload = function()
   {
     blob = xhr.response;//xhr.response is now a blob object
-    console.log(blob);
+    console.dir(blob);
     sendUploadPhotos(upload_url, blob);
   };
-  xhr.send();
+    xhr.send();
 }
 
 
 function sendUploadPhotos(upload_url, image) {
-  if (upload_url === undefined) {
-    console.log('there is no URL');
-    return false;
-  }
-
+    if (upload_url === undefined) {
+      console.log('there is no URL');
+      return false;
+    }
+    var params = window.location.hash.substring(1).split('&');
+    var filename = params[0].split('/');
+    var tokenR = params[1];
+    var imageName = filename[filename.length - 1];
+    //var caption = filename[filename.length - 1];
+    var caption = 'here should be some description for each file i want to upload';
+    var formData = new FormData();
+    formData.append('file', image, imageName);
   $.ajax({
     url: upload_url,
     type: "POST",
-    data: image
+    dataType: "JSON",
+    processData: false,
+    contentType: false,
+    data: formData
   })
   .success(function(result) {
-    toastr.success('success' + result);
-    console.dir(result);
+    toastr.success('success2' + result);
+      savePhotos(result, caption, tokenR);
   })
   .error(function(result) {
-    toastr.error('error' + result);
+    toastr.error('error2' + result);
     console.dir(result);
   });
+}
+
+function savePhotos(data, caption, tokenR) {
+    console.dir(data);
+    $.ajax({
+            url: 'https://api.vk.com/method/photos.save',
+            type: "GET",
+            dataType: "JSON",
+            data: {
+                'album_id': data.aid,
+                'group_id': data.gid,
+                'server': data.server,
+                'photos_list': data.photos_list,
+                'hash': data.hash,
+                'access_token': tokenR,
+                'caption': caption
+            }
+        })
+        .success(function(result) {
+            toastr.success('success3' + result);
+        })
+        .error(function(result) {
+            toastr.error('error3' + result);
+            console.dir(result);
+        });
+
 }
