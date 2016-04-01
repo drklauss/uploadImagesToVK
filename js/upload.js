@@ -124,3 +124,8 @@ function savePhotos(data, caption, tokenR) {
     console.dir(result);
   });
 }
+
+
+function parseUrl(){
+  
+}
