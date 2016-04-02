@@ -108,7 +108,7 @@ function getClickHandler() {
       imageUploadHelperUrl += imageSourceUrl + '&' + items.vk_access_token;
       chrome.tabs.create({
         url: imageUploadHelperUrl,
-        selected: true
+        active: false
       });
     });
   };
