@@ -89,6 +89,7 @@ function getClickHandler() {
   return function(info, tab) {
     //var old = '3315996';
     var imageSourceUrl = info.srcUrl,
+      pageSourceUrl = info.pageUrl,
       imageUploadHelperUrl = 'upload.html#',
       vkCLientId = '5379574',
       vkRequestedScopes = 'docs,offline,photos',
@@ -105,7 +106,7 @@ function getClickHandler() {
         });
         return;
       }
-      imageUploadHelperUrl += imageSourceUrl + '&' + items.vk_access_token;
+      imageUploadHelperUrl += imageSourceUrl + '&' + items.vk_access_token + '&' + pageSourceUrl;
       chrome.tabs.create({
         url: imageUploadHelperUrl,
         active: false

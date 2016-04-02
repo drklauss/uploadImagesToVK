@@ -3,6 +3,8 @@
 var TOKEN = parseUrl('token');
 var ALBUM_ID = 230013795;
 var GROUP_ID = 118100154;
+var CAPTION;
+
 /**
  * Add a listener for DOMContentLoaded event
  *
@@ -11,6 +13,7 @@ var GROUP_ID = 118100154;
  */
 document.addEventListener("DOMContentLoaded", function() {
   "use strict";
+  selectSite('sima');
   uploadAjax();
 });
 
@@ -66,7 +69,6 @@ function sendUploadPhotos(upload_url, image) {
     return false;
   }
   var imageName = parseUrl('imageName');
-  var caption = 'here should be some description for each file i want to upload';
   var formData = new FormData();
   formData.append('file', image, imageName);
   $.ajax({
@@ -88,7 +90,6 @@ function sendUploadPhotos(upload_url, image) {
 /**
  * Save uploaded in previous step photos_list
  * @param  {JSON} data    json response from previous step
- * @param  {string} caption deescription for image in album_id
  * @return {[type]}         [description]
  */
 function savePhotos(data) {
@@ -103,7 +104,7 @@ function savePhotos(data) {
       'photos_list': data.photos_list,
       'hash': data.hash,
       'access_token': parseUrl('token'),
-      'caption': parseUrl('caption')
+      'caption': CAPTION
     }
   })
   .success(function(result) {
@@ -115,43 +116,55 @@ function savePhotos(data) {
 }
 
 /**
- * get text from URL
- * @param  {string} getType [description]
- * @return {string}         [description]
+ * Call function to set CAPTION
+ * @param  {string} site sitename
+ * @return {[type]}      [description]
  */
+function selectSite(site){
+  switch (site) {
+    case 'sima':
+      getSimaCaption();
+      break;
+    default:
+      break;
+  }
+}
+
+/**
+* get text from URL
+* @param  {string} getType [description]
+* @return {string}         [description]
+*/
 function parseUrl(getType){
   var PARAMS = window.location.hash.substring(1).split('&');
   switch (getType) {
     case 'imageUrl':
     return PARAMS[0];
     case 'token':
-      return PARAMS[1];
+    return PARAMS[1];
     case 'imageName':
-      var urlArray = PARAMS[0].split('/');
-      return urlArray[urlArray.length - 1];
-    case 'caption':
-    if (!PARAMS[2]) {
-      return 'This is default caption';
-    } else {
-      return PARAMS[2];
-    }
+    var urlArray = PARAMS[0].split('/');
+    return urlArray[urlArray.length - 1];
+    case 'sourceUrl':
+    return PARAMS[2];
   }
 }
 
-function selectSite(site){
-  switch (site) {
-    case 'sima':
-      return parseSimaCaption();
-    default:
-      return 'There is no caption';
-  }
-}
-
-function parseSimaCaption(){
-  var url = '//st-cdn.r.worldssl.net/items/470/470393/0/140.jpg';
-  $('img').each(function() {
-    if ($(this).attr('src') == url) {
-      console.log($(this).attr('title'));
-    }
+/**
+ * Sets CAPTION
+ */
+function getSimaCaption(){
+  var imageUrl = parseUrl('imageUrl');
+  imageUrl = imageUrl.slice(6);
+  var getUrl = parseUrl('sourceUrl');
+  $.get(getUrl, function(response) {
+    $(response).find('img').each(function() {
+      if ($(this).attr('src') == imageUrl || $(this).attr('data-second-photo-href') == imageUrl || $(this).attr('data-original') == imageUrl) {
+        CAPTION = $(this).attr('alt');
+      }
+    });
+  })
+  .fail(function() {
+    CAPTION = undefined;
   });
 }
